@@ -1,0 +1,44 @@
+{
+	"name": "medicinedata_preprocessed",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "processeddatalake",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "DelimitedText",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"folderPath": "processed",
+				"fileSystem": "azureprocessed"
+			},
+			"columnDelimiter": ",",
+			"escapeChar": "\\",
+			"firstRowAsHeader": true,
+			"quoteChar": "\""
+		},
+		"schema": [
+			{
+				"name": "drug_name",
+				"type": "String"
+			},
+			{
+				"name": "medical_condition",
+				"type": "String"
+			},
+			{
+				"name": "generic_name",
+				"type": "String"
+			},
+			{
+				"name": "brand_names",
+				"type": "String"
+			},
+			{
+				"name": "activity",
+				"type": "String"
+			}
+		]
+	}
+}
