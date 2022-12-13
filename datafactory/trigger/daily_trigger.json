@@ -2,7 +2,7 @@
 	"name": "daily_trigger",
 	"properties": {
 		"annotations": [],
-		"runtimeState": "Stopped",
+		"runtimeState": "Started",
 		"pipelines": [
 			{
 				"pipelineReference": {
@@ -16,7 +16,7 @@
 			"recurrence": {
 				"frequency": "Day",
 				"interval": 1,
-				"startTime": "2022-12-13T20:22:00",
+				"startTime": "2022-12-13T20:26:00",
 				"timeZone": "India Standard Time"
 			}
 		}
