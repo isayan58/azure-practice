@@ -5,6 +5,9 @@
 		"factoryName": {
 			"value": "azuredatapracticesayan"
 		},
+		"SqlDatabaseMedicine_connectionString": {
+			"value": ""
+		},
 		"processeddatalake_accountKey": {
 			"value": ""
 		},

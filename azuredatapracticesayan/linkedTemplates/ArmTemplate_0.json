@@ -7,6 +7,10 @@
 			"metadata": "Data Factory name",
 			"defaultValue": "azuredatapracticesayan"
 		},
+		"SqlDatabaseMedicine_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'SqlDatabaseMedicine'"
+		},
 		"processeddatalake_accountKey": {
 			"type": "secureString",
 			"metadata": "Secure string for 'accountKey' of 'processeddatalake'"
@@ -20,6 +24,19 @@
 		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
 	},
 	"resources": [
+		{
+			"name": "[concat(parameters('factoryName'), '/SqlDatabaseMedicine')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureSqlDatabase",
+				"typeProperties": {
+					"connectionString": "[parameters('SqlDatabaseMedicine_connectionString')]"
+				}
+			},
+			"dependsOn": []
+		},
 		{
 			"name": "[concat(parameters('factoryName'), '/processeddatalake')]",
 			"type": "Microsoft.DataFactory/factories/linkedServices",
@@ -36,6 +53,48 @@
 				}
 			},
 			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/MedicineDatabase')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "SqlDatabaseMedicine",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "drug_name",
+						"type": "varchar"
+					},
+					{
+						"name": "medical_condition",
+						"type": "varchar"
+					},
+					{
+						"name": "generic_name",
+						"type": "varchar"
+					},
+					{
+						"name": "brand_names",
+						"type": "varchar"
+					},
+					{
+						"name": "activity",
+						"type": "varchar"
+					}
+				],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "PROCESSED_MEDICINES"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/SqlDatabaseMedicine')]"
+			]
 		},
 		{
 			"name": "[concat(parameters('factoryName'), '/medicinedata_preprocessed')]",
@@ -84,6 +143,80 @@
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/linkedServices/processeddatalake')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/df_preprocessed_data')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "medicinedata_preprocessed",
+								"type": "DatasetReference"
+							},
+							"name": "preprocesseddata"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "MedicineDatabase",
+								"type": "DatasetReference"
+							},
+							"name": "postTodatabase"
+						}
+					],
+					"transformations": [
+						{
+							"name": "RemoveQuotes"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          drug_name as string,",
+						"          medical_condition as string,",
+						"          generic_name as string,",
+						"          brand_names as string,",
+						"          activity as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     ignoreNoFilesFound: true,",
+						"     multiLineRow: true) ~> preprocesseddata",
+						"preprocesseddata derive(drug_name = ltrim(rtrim(drug_name, '\"'), '\"'),",
+						"          medical_condition = ltrim(rtrim(medical_condition, '\"'), '\"'),",
+						"          generic_name = ltrim(rtrim(generic_name, '\"'), '\"'),",
+						"          brand_names = ltrim(rtrim(brand_names, '\"'), '\"'),",
+						"          activity = ltrim(rtrim(activity, '\"'), '\"')) ~> RemoveQuotes",
+						"RemoveQuotes sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     input(",
+						"          drug_name as string,",
+						"          medical_condition as string,",
+						"          generic_name as string,",
+						"          brand_names as string,",
+						"          activity as string",
+						"     ),",
+						"     deletable:false,",
+						"     insertable:true,",
+						"     updateable:false,",
+						"     upsertable:false,",
+						"     format: 'table',",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     errorHandlingOption: 'allErrors',",
+						"     transactionCommit: 'single',",
+						"     reportSuccessOnError: false) ~> postTodatabase"
+					]
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/medicinedata_preprocessed')]",
+				"[concat(variables('factoryId'), '/datasets/MedicineDatabase')]"
 			]
 		}
 	]

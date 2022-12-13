@@ -7,6 +7,10 @@
 			"metadata": "Data Factory name",
 			"defaultValue": "azuredatapracticesayan"
 		},
+		"SqlDatabaseMedicine_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'SqlDatabaseMedicine'"
+		},
 		"processeddatalake_accountKey": {
 			"type": "secureString",
 			"metadata": "Secure string for 'accountKey' of 'processeddatalake'"
@@ -41,6 +45,9 @@
 				"parameters": {
 					"factoryName": {
 						"value": "[parameters('factoryName')]"
+					},
+					"SqlDatabaseMedicine_connectionString": {
+						"value": "[parameters('SqlDatabaseMedicine_connectionString')]"
 					},
 					"processeddatalake_accountKey": {
 						"value": "[parameters('processeddatalake_accountKey')]"
