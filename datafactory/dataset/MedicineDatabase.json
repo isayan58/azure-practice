@@ -1,0 +1,37 @@
+{
+	"name": "MedicineDatabase",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "SqlDatabaseMedicine",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [
+			{
+				"name": "drug_name",
+				"type": "varchar"
+			},
+			{
+				"name": "medical_condition",
+				"type": "varchar"
+			},
+			{
+				"name": "generic_name",
+				"type": "varchar"
+			},
+			{
+				"name": "brand_names",
+				"type": "varchar"
+			},
+			{
+				"name": "activity",
+				"type": "varchar"
+			}
+		],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "PROCESSED_MEDICINES"
+		}
+	}
+}

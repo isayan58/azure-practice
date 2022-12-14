@@ -1,0 +1,301 @@
+{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"type": "string",
+			"metadata": "Data Factory name",
+			"defaultValue": "azuredatapracticesayan"
+		},
+		"SqlDatabaseMedicine_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'SqlDatabaseMedicine'"
+		},
+		"processeddatalake_accountKey": {
+			"type": "secureString",
+			"metadata": "Secure string for 'accountKey' of 'processeddatalake'"
+		},
+		"processeddatalake_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://azurepractice58.dfs.core.windows.net/"
+		}
+	},
+	"variables": {
+		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
+	},
+	"resources": [
+		{
+			"name": "[concat(parameters('factoryName'), '/postDatatoSQL')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "MoveDataFromDataLakeToSQL",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "df_preprocessed_data",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"preprocesseddata": {},
+									"postTodatabase": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {},
+					"cancelAfter": {}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/dataflows/df_preprocessed_data')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/MedicineDatabase')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "SqlDatabaseMedicine",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "drug_name",
+						"type": "varchar"
+					},
+					{
+						"name": "medical_condition",
+						"type": "varchar"
+					},
+					{
+						"name": "generic_name",
+						"type": "varchar"
+					},
+					{
+						"name": "brand_names",
+						"type": "varchar"
+					},
+					{
+						"name": "activity",
+						"type": "varchar"
+					}
+				],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "PROCESSED_MEDICINES"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/SqlDatabaseMedicine')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/medicinedata_preprocessed')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "processeddatalake",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"folderPath": "processed",
+						"fileSystem": "azureprocessed"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": [
+					{
+						"name": "drug_name",
+						"type": "String"
+					},
+					{
+						"name": "medical_condition",
+						"type": "String"
+					},
+					{
+						"name": "generic_name",
+						"type": "String"
+					},
+					{
+						"name": "brand_names",
+						"type": "String"
+					},
+					{
+						"name": "activity",
+						"type": "String"
+					}
+				]
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/processeddatalake')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/SqlDatabaseMedicine')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureSqlDatabase",
+				"typeProperties": {
+					"connectionString": "[parameters('SqlDatabaseMedicine_connectionString')]"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/processeddatalake')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureBlobFS",
+				"typeProperties": {
+					"url": "[parameters('processeddatalake_properties_typeProperties_url')]",
+					"accountKey": {
+						"type": "SecureString",
+						"value": "[parameters('processeddatalake_accountKey')]"
+					}
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/daily_trigger')]",
+			"type": "Microsoft.DataFactory/factories/triggers",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"runtimeState": "Started",
+				"pipelines": [
+					{
+						"pipelineReference": {
+							"referenceName": "postDatatoSQL",
+							"type": "PipelineReference"
+						},
+						"parameters": {}
+					}
+				],
+				"type": "ScheduleTrigger",
+				"typeProperties": {
+					"recurrence": {
+						"frequency": "Day",
+						"interval": 1,
+						"startTime": "2022-12-13T20:26:00",
+						"timeZone": "India Standard Time"
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/pipelines/postDatatoSQL')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/df_preprocessed_data')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "medicinedata_preprocessed",
+								"type": "DatasetReference"
+							},
+							"name": "preprocesseddata"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "MedicineDatabase",
+								"type": "DatasetReference"
+							},
+							"name": "postTodatabase"
+						}
+					],
+					"transformations": [
+						{
+							"name": "RemoveQuotes"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          drug_name as string,",
+						"          medical_condition as string,",
+						"          generic_name as string,",
+						"          brand_names as string,",
+						"          activity as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     ignoreNoFilesFound: true,",
+						"     multiLineRow: true) ~> preprocesseddata",
+						"preprocesseddata derive(drug_name = ltrim(rtrim(drug_name, '\"'), '\"'),",
+						"          medical_condition = ltrim(rtrim(medical_condition, '\"'), '\"'),",
+						"          generic_name = ltrim(rtrim(generic_name, '\"'), '\"'),",
+						"          brand_names = ltrim(rtrim(brand_names, '\"'), '\"'),",
+						"          activity = ltrim(rtrim(activity, '\"'), '\"')) ~> RemoveQuotes",
+						"RemoveQuotes sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     input(",
+						"          drug_name as string,",
+						"          medical_condition as string,",
+						"          generic_name as string,",
+						"          brand_names as string,",
+						"          activity as string",
+						"     ),",
+						"     deletable:false,",
+						"     insertable:true,",
+						"     updateable:false,",
+						"     upsertable:false,",
+						"     truncate:true,",
+						"     format: 'table',",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     errorHandlingOption: 'allErrors',",
+						"     transactionCommit: 'single',",
+						"     reportSuccessOnError: false) ~> postTodatabase"
+					]
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/medicinedata_preprocessed')]",
+				"[concat(variables('factoryId'), '/datasets/MedicineDatabase')]"
+			]
+		}
+	]
+}

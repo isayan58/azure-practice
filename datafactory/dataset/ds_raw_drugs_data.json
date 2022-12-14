@@ -1,0 +1,92 @@
+{
+	"name": "ds_raw_drugs_data",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "RawBlobStorage",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "DelimitedText",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"folderPath": "raw",
+				"fileSystem": "azureraw"
+			},
+			"columnDelimiter": ",",
+			"escapeChar": "\\",
+			"firstRowAsHeader": true,
+			"quoteChar": "\""
+		},
+		"schema": [
+			{
+				"name": "drug_name",
+				"type": "String"
+			},
+			{
+				"name": "medical_condition",
+				"type": "String"
+			},
+			{
+				"name": "side_effects",
+				"type": "String"
+			},
+			{
+				"name": "generic_name",
+				"type": "String"
+			},
+			{
+				"name": "drug_classes",
+				"type": "String"
+			},
+			{
+				"name": "brand_names",
+				"type": "String"
+			},
+			{
+				"name": "activity",
+				"type": "String"
+			},
+			{
+				"name": "rx_otc",
+				"type": "String"
+			},
+			{
+				"name": "pregnancy_category",
+				"type": "String"
+			},
+			{
+				"name": "csa",
+				"type": "String"
+			},
+			{
+				"name": "alcohol",
+				"type": "String"
+			},
+			{
+				"name": "related_drugs",
+				"type": "String"
+			},
+			{
+				"name": "medical_condition_description",
+				"type": "String"
+			},
+			{
+				"name": "rating",
+				"type": "String"
+			},
+			{
+				"name": "no_of_reviews",
+				"type": "String"
+			},
+			{
+				"name": "drug_link",
+				"type": "String"
+			},
+			{
+				"name": "medical_condition_url",
+				"type": "String"
+			}
+		]
+	}
+}

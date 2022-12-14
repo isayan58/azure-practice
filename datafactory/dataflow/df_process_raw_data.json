@@ -1,0 +1,43 @@
+{
+	"name": "df_process_raw_data",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "ds_raw_drugs_data",
+						"type": "DatasetReference"
+					},
+					"name": "source1"
+				}
+			],
+			"sinks": [],
+			"transformations": [],
+			"scriptLines": [
+				"source(output(",
+				"          drug_name as string,",
+				"          medical_condition as string,",
+				"          side_effects as string,",
+				"          generic_name as string,",
+				"          drug_classes as string,",
+				"          brand_names as string,",
+				"          activity as string,",
+				"          rx_otc as string,",
+				"          pregnancy_category as string,",
+				"          csa as string,",
+				"          alcohol as string,",
+				"          related_drugs as string,",
+				"          medical_condition_description as string,",
+				"          rating as string,",
+				"          no_of_reviews as string,",
+				"          drug_link as string,",
+				"          medical_condition_url as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> source1"
+			]
+		}
+	}
+}

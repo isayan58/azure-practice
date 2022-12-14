@@ -1,0 +1,69 @@
+{
+	"name": "df_preprocessed_data",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "medicinedata_preprocessed",
+						"type": "DatasetReference"
+					},
+					"name": "preprocesseddata"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "MedicineDatabase",
+						"type": "DatasetReference"
+					},
+					"name": "postTodatabase"
+				}
+			],
+			"transformations": [
+				{
+					"name": "RemoveQuotes"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          drug_name as string,",
+				"          medical_condition as string,",
+				"          generic_name as string,",
+				"          brand_names as string,",
+				"          activity as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: true,",
+				"     multiLineRow: true) ~> preprocesseddata",
+				"preprocesseddata derive(drug_name = ltrim(rtrim(drug_name, '\"'), '\"'),",
+				"          medical_condition = ltrim(rtrim(medical_condition, '\"'), '\"'),",
+				"          generic_name = ltrim(rtrim(generic_name, '\"'), '\"'),",
+				"          brand_names = ltrim(rtrim(brand_names, '\"'), '\"'),",
+				"          activity = ltrim(rtrim(activity, '\"'), '\"')) ~> RemoveQuotes",
+				"RemoveQuotes sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          drug_name as string,",
+				"          medical_condition as string,",
+				"          generic_name as string,",
+				"          brand_names as string,",
+				"          activity as string",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     truncate:true,",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'allErrors',",
+				"     transactionCommit: 'single',",
+				"     reportSuccessOnError: false) ~> postTodatabase"
+			]
+		}
+	}
+}

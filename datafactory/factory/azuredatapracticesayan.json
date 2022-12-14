@@ -1,0 +1,9 @@
+{
+	"name": "azuredatapracticesayan",
+	"location": "centralindia",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "db79747a-58d5-492c-90a2-3dee000739c3",
+		"tenantId": "75f54bd9-7a2a-4e7b-b802-7117416c646e"
+	}
+}
