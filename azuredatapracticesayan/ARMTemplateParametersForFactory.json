@@ -5,14 +5,23 @@
 		"factoryName": {
 			"value": "azuredatapracticesayan"
 		},
+		"RawBlobStorage_accountKey": {
+			"value": ""
+		},
 		"SqlDatabaseMedicine_connectionString": {
 			"value": ""
 		},
 		"processeddatalake_accountKey": {
 			"value": ""
 		},
+		"RawBlobStorage_properties_typeProperties_url": {
+			"value": "https://azurepractice58.dfs.core.windows.net/"
+		},
 		"processeddatalake_properties_typeProperties_url": {
 			"value": "https://azurepractice58.dfs.core.windows.net/"
+		},
+		"tr_process_raw_data_properties_typeProperties_scope": {
+			"value": "/subscriptions/0a35b22d-7a96-474a-bf5b-35915b45e4a7/resourceGroups/azurepractice/providers/Microsoft.Storage/storageAccounts/azurepractice58"
 		}
 	}
 }
