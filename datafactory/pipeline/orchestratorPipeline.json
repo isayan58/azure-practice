@@ -42,7 +42,7 @@
 					{
 						"activity": "Blob to Azure SQL",
 						"dependencyConditions": [
-							"Succeeded"
+							"Completed"
 						]
 					}
 				],
@@ -57,6 +57,45 @@
 				"typeProperties": {
 					"dataset": {
 						"referenceName": "medicinedata_preprocessed",
+						"type": "DatasetReference"
+					},
+					"logStorageSettings": {
+						"linkedServiceName": {
+							"referenceName": "RawBlobStorage",
+							"type": "LinkedServiceReference"
+						},
+						"path": "logs"
+					},
+					"enableLogging": true,
+					"storeSettings": {
+						"type": "AzureBlobFSReadSettings",
+						"recursive": true,
+						"enablePartitionDiscovery": false
+					}
+				}
+			},
+			{
+				"name": "Delete Source File",
+				"type": "Delete",
+				"dependsOn": [
+					{
+						"activity": "Blob to Azure SQL",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "ds_raw_drugs_data",
 						"type": "DatasetReference"
 					},
 					"logStorageSettings": {
