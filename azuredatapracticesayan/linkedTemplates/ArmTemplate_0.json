@@ -7,6 +7,10 @@
 			"metadata": "Data Factory name",
 			"defaultValue": "azuredatapracticesayan"
 		},
+		"RawBlobStorage_accountKey": {
+			"type": "secureString",
+			"metadata": "Secure string for 'accountKey' of 'RawBlobStorage'"
+		},
 		"SqlDatabaseMedicine_connectionString": {
 			"type": "secureString",
 			"metadata": "Secure string for 'connectionString' of 'SqlDatabaseMedicine'"
@@ -15,15 +19,40 @@
 			"type": "secureString",
 			"metadata": "Secure string for 'accountKey' of 'processeddatalake'"
 		},
+		"RawBlobStorage_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://azurepractice58.dfs.core.windows.net/"
+		},
 		"processeddatalake_properties_typeProperties_url": {
 			"type": "string",
 			"defaultValue": "https://azurepractice58.dfs.core.windows.net/"
+		},
+		"tr_storage_upload_properties_typeProperties_scope": {
+			"type": "string",
+			"defaultValue": "/subscriptions/0a35b22d-7a96-474a-bf5b-35915b45e4a7/resourceGroups/azurepractice/providers/Microsoft.Storage/storageAccounts/azurepractice58"
 		}
 	},
 	"variables": {
 		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
 	},
 	"resources": [
+		{
+			"name": "[concat(parameters('factoryName'), '/RawBlobStorage')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureBlobFS",
+				"typeProperties": {
+					"url": "[parameters('RawBlobStorage_properties_typeProperties_url')]",
+					"accountKey": {
+						"type": "SecureString",
+						"value": "[parameters('RawBlobStorage_accountKey')]"
+					}
+				}
+			},
+			"dependsOn": []
+		},
 		{
 			"name": "[concat(parameters('factoryName'), '/SqlDatabaseMedicine')]",
 			"type": "Microsoft.DataFactory/factories/linkedServices",
@@ -94,6 +123,103 @@
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/linkedServices/SqlDatabaseMedicine')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_raw_drugs_data')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "RawBlobStorage",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"folderPath": "raw",
+						"fileSystem": "azureraw"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": [
+					{
+						"name": "drug_name",
+						"type": "String"
+					},
+					{
+						"name": "medical_condition",
+						"type": "String"
+					},
+					{
+						"name": "side_effects",
+						"type": "String"
+					},
+					{
+						"name": "generic_name",
+						"type": "String"
+					},
+					{
+						"name": "drug_classes",
+						"type": "String"
+					},
+					{
+						"name": "brand_names",
+						"type": "String"
+					},
+					{
+						"name": "activity",
+						"type": "String"
+					},
+					{
+						"name": "rx_otc",
+						"type": "String"
+					},
+					{
+						"name": "pregnancy_category",
+						"type": "String"
+					},
+					{
+						"name": "csa",
+						"type": "String"
+					},
+					{
+						"name": "alcohol",
+						"type": "String"
+					},
+					{
+						"name": "related_drugs",
+						"type": "String"
+					},
+					{
+						"name": "medical_condition_description",
+						"type": "String"
+					},
+					{
+						"name": "rating",
+						"type": "String"
+					},
+					{
+						"name": "no_of_reviews",
+						"type": "String"
+					},
+					{
+						"name": "drug_link",
+						"type": "String"
+					},
+					{
+						"name": "medical_condition_url",
+						"type": "String"
+					}
+				]
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/RawBlobStorage')]"
 			]
 		},
 		{
@@ -221,6 +347,90 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/df_process_raw_data')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "ds_raw_drugs_data",
+								"type": "DatasetReference"
+							},
+							"name": "source1"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "medicinedata_preprocessed",
+								"type": "DatasetReference"
+							},
+							"name": "sinkPreProcess"
+						}
+					],
+					"transformations": [
+						{
+							"name": "selectPreprocess"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          drug_name as string,",
+						"          medical_condition as string,",
+						"          side_effects as string,",
+						"          generic_name as string,",
+						"          drug_classes as string,",
+						"          brand_names as string,",
+						"          activity as string,",
+						"          rx_otc as string,",
+						"          pregnancy_category as string,",
+						"          csa as string,",
+						"          alcohol as string,",
+						"          related_drugs as string,",
+						"          medical_condition_description as string,",
+						"          rating as string,",
+						"          no_of_reviews as string,",
+						"          drug_link as string,",
+						"          medical_condition_url as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     ignoreNoFilesFound: false) ~> source1",
+						"source1 select(mapColumn(",
+						"          drug_name,",
+						"          medical_condition,",
+						"          generic_name,",
+						"          brand_names,",
+						"          activity",
+						"     ),",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> selectPreprocess",
+						"selectPreprocess sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     input(",
+						"          drug_name as string,",
+						"          medical_condition as string,",
+						"          generic_name as string,",
+						"          brand_names as string,",
+						"          activity as string",
+						"     ),",
+						"     umask: 0022,",
+						"     preCommands: [],",
+						"     postCommands: [],",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> sinkPreProcess"
+					]
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/ds_raw_drugs_data')]",
+				"[concat(variables('factoryId'), '/datasets/medicinedata_preprocessed')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/postDatatoSQL')]",
 			"type": "Microsoft.DataFactory/factories/pipelines",
 			"apiVersion": "2018-06-01",
@@ -268,7 +478,190 @@
 			]
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/daily_trigger')]",
+			"name": "[concat(parameters('factoryName'), '/process_raw_data')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Data flow1",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "df_process_raw_data",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"source1": {},
+									"sinkPreProcess": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {},
+					"cancelAfter": {}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/dataflows/df_process_raw_data')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/orchestratorPipeline')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "RawData to Blob",
+						"type": "ExecutePipeline",
+						"dependsOn": [],
+						"userProperties": [],
+						"typeProperties": {
+							"pipeline": {
+								"referenceName": "process_raw_data",
+								"type": "PipelineReference"
+							},
+							"waitOnCompletion": true,
+							"parameters": {}
+						}
+					},
+					{
+						"name": "Blob to Azure SQL",
+						"type": "ExecutePipeline",
+						"dependsOn": [
+							{
+								"activity": "RawData to Blob",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"pipeline": {
+								"referenceName": "postDatatoSQL",
+								"type": "PipelineReference"
+							},
+							"waitOnCompletion": true,
+							"parameters": {}
+						}
+					},
+					{
+						"name": "Delete Preprocessed Data",
+						"type": "Delete",
+						"dependsOn": [
+							{
+								"activity": "Blob to Azure SQL",
+								"dependencyConditions": [
+									"Completed"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataset": {
+								"referenceName": "medicinedata_preprocessed",
+								"type": "DatasetReference",
+								"parameters": {}
+							},
+							"logStorageSettings": {
+								"linkedServiceName": {
+									"referenceName": "RawBlobStorage",
+									"type": "LinkedServiceReference"
+								},
+								"path": "logs"
+							},
+							"enableLogging": true,
+							"storeSettings": {
+								"type": "AzureBlobFSReadSettings",
+								"recursive": true,
+								"enablePartitionDiscovery": false
+							}
+						}
+					},
+					{
+						"name": "Delete Source File",
+						"type": "Delete",
+						"dependsOn": [
+							{
+								"activity": "Blob to Azure SQL",
+								"dependencyConditions": [
+									"Completed"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataset": {
+								"referenceName": "ds_raw_drugs_data",
+								"type": "DatasetReference",
+								"parameters": {}
+							},
+							"logStorageSettings": {
+								"linkedServiceName": {
+									"referenceName": "RawBlobStorage",
+									"type": "LinkedServiceReference"
+								},
+								"path": "logs"
+							},
+							"enableLogging": true,
+							"storeSettings": {
+								"type": "AzureBlobFSReadSettings",
+								"recursive": true,
+								"enablePartitionDiscovery": false
+							}
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {},
+					"cancelAfter": {}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/pipelines/process_raw_data')]",
+				"[concat(variables('factoryId'), '/pipelines/postDatatoSQL')]",
+				"[concat(variables('factoryId'), '/datasets/medicinedata_preprocessed')]",
+				"[concat(variables('factoryId'), '/datasets/ds_raw_drugs_data')]",
+				"[concat(variables('factoryId'), '/linkedServices/RawBlobStorage')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/tr_storage_upload')]",
 			"type": "Microsoft.DataFactory/factories/triggers",
 			"apiVersion": "2018-06-01",
 			"properties": {
@@ -277,24 +670,24 @@
 				"pipelines": [
 					{
 						"pipelineReference": {
-							"referenceName": "postDatatoSQL",
+							"referenceName": "orchestratorPipeline",
 							"type": "PipelineReference"
 						},
 						"parameters": {}
 					}
 				],
-				"type": "ScheduleTrigger",
+				"type": "BlobEventsTrigger",
 				"typeProperties": {
-					"recurrence": {
-						"frequency": "Day",
-						"interval": 1,
-						"startTime": "2022-12-13T20:26:00",
-						"timeZone": "India Standard Time"
-					}
+					"blobPathBeginsWith": "/azureraw/blobs/",
+					"ignoreEmptyBlobs": true,
+					"scope": "[parameters('tr_storage_upload_properties_typeProperties_scope')]",
+					"events": [
+						"Microsoft.Storage.BlobCreated"
+					]
 				}
 			},
 			"dependsOn": [
-				"[concat(variables('factoryId'), '/pipelines/postDatatoSQL')]"
+				"[concat(variables('factoryId'), '/pipelines/orchestratorPipeline')]"
 			]
 		}
 	]

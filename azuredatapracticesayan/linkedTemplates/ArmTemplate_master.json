@@ -7,6 +7,10 @@
 			"metadata": "Data Factory name",
 			"defaultValue": "azuredatapracticesayan"
 		},
+		"RawBlobStorage_accountKey": {
+			"type": "secureString",
+			"metadata": "Secure string for 'accountKey' of 'RawBlobStorage'"
+		},
 		"SqlDatabaseMedicine_connectionString": {
 			"type": "secureString",
 			"metadata": "Secure string for 'connectionString' of 'SqlDatabaseMedicine'"
@@ -15,9 +19,17 @@
 			"type": "secureString",
 			"metadata": "Secure string for 'accountKey' of 'processeddatalake'"
 		},
+		"RawBlobStorage_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://azurepractice58.dfs.core.windows.net/"
+		},
 		"processeddatalake_properties_typeProperties_url": {
 			"type": "string",
 			"defaultValue": "https://azurepractice58.dfs.core.windows.net/"
+		},
+		"tr_storage_upload_properties_typeProperties_scope": {
+			"type": "string",
+			"defaultValue": "/subscriptions/0a35b22d-7a96-474a-bf5b-35915b45e4a7/resourceGroups/azurepractice/providers/Microsoft.Storage/storageAccounts/azurepractice58"
 		},
 		"containerUri": {
 			"type": "string",
@@ -46,14 +58,23 @@
 					"factoryName": {
 						"value": "[parameters('factoryName')]"
 					},
+					"RawBlobStorage_accountKey": {
+						"value": "[parameters('RawBlobStorage_accountKey')]"
+					},
 					"SqlDatabaseMedicine_connectionString": {
 						"value": "[parameters('SqlDatabaseMedicine_connectionString')]"
 					},
 					"processeddatalake_accountKey": {
 						"value": "[parameters('processeddatalake_accountKey')]"
 					},
+					"RawBlobStorage_properties_typeProperties_url": {
+						"value": "[parameters('RawBlobStorage_properties_typeProperties_url')]"
+					},
 					"processeddatalake_properties_typeProperties_url": {
 						"value": "[parameters('processeddatalake_properties_typeProperties_url')]"
+					},
+					"tr_storage_upload_properties_typeProperties_scope": {
+						"value": "[parameters('tr_storage_upload_properties_typeProperties_scope')]"
 					}
 				}
 			},

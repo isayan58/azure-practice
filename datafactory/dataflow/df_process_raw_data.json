@@ -12,8 +12,20 @@
 					"name": "source1"
 				}
 			],
-			"sinks": [],
-			"transformations": [],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "medicinedata_preprocessed",
+						"type": "DatasetReference"
+					},
+					"name": "sinkPreProcess"
+				}
+			],
+			"transformations": [
+				{
+					"name": "selectPreprocess"
+				}
+			],
 			"scriptLines": [
 				"source(output(",
 				"          drug_name as string,",
@@ -36,7 +48,30 @@
 				"     ),",
 				"     allowSchemaDrift: true,",
 				"     validateSchema: false,",
-				"     ignoreNoFilesFound: false) ~> source1"
+				"     ignoreNoFilesFound: false) ~> source1",
+				"source1 select(mapColumn(",
+				"          drug_name,",
+				"          medical_condition,",
+				"          generic_name,",
+				"          brand_names,",
+				"          activity",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectPreprocess",
+				"selectPreprocess sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          drug_name as string,",
+				"          medical_condition as string,",
+				"          generic_name as string,",
+				"          brand_names as string,",
+				"          activity as string",
+				"     ),",
+				"     umask: 0022,",
+				"     preCommands: [],",
+				"     postCommands: [],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> sinkPreProcess"
 			]
 		}
 	}
