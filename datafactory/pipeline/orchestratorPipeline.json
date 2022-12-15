@@ -1,0 +1,41 @@
+{
+	"name": "orchestratorPipeline",
+	"properties": {
+		"activities": [
+			{
+				"name": "RawData to Blob",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "process_raw_data",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "Blob to Azure SQL",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "RawData to Blob",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "postDatatoSQL",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			}
+		],
+		"annotations": []
+	}
+}
