@@ -34,6 +34,45 @@
 					},
 					"waitOnCompletion": true
 				}
+			},
+			{
+				"name": "Delete Preprocessed Data",
+				"type": "Delete",
+				"dependsOn": [
+					{
+						"activity": "Blob to Azure SQL",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "medicinedata_preprocessed",
+						"type": "DatasetReference"
+					},
+					"logStorageSettings": {
+						"linkedServiceName": {
+							"referenceName": "RawBlobStorage",
+							"type": "LinkedServiceReference"
+						},
+						"path": "logs"
+					},
+					"enableLogging": true,
+					"storeSettings": {
+						"type": "AzureBlobFSReadSettings",
+						"recursive": true,
+						"enablePartitionDiscovery": false
+					}
+				}
 			}
 		],
 		"annotations": []
