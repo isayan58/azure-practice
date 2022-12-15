@@ -30,6 +30,10 @@
 		"tr_process_raw_data_properties_typeProperties_scope": {
 			"type": "string",
 			"defaultValue": "/subscriptions/0a35b22d-7a96-474a-bf5b-35915b45e4a7/resourceGroups/azurepractice/providers/Microsoft.Storage/storageAccounts/azurepractice58"
+		},
+		"tr_storage_upload_properties_typeProperties_scope": {
+			"type": "string",
+			"defaultValue": "/subscriptions/0a35b22d-7a96-474a-bf5b-35915b45e4a7/resourceGroups/azurepractice/providers/Microsoft.Storage/storageAccounts/azurepractice58"
 		}
 	},
 	"variables": {
@@ -518,6 +522,36 @@
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/pipelines/process_raw_data')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/tr_storage_upload')]",
+			"type": "Microsoft.DataFactory/factories/triggers",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"runtimeState": "Started",
+				"pipelines": [
+					{
+						"pipelineReference": {
+							"referenceName": "orchestratorPipeline",
+							"type": "PipelineReference"
+						},
+						"parameters": {}
+					}
+				],
+				"type": "BlobEventsTrigger",
+				"typeProperties": {
+					"blobPathBeginsWith": "/azureraw/blobs/",
+					"ignoreEmptyBlobs": true,
+					"scope": "[parameters('tr_storage_upload_properties_typeProperties_scope')]",
+					"events": [
+						"Microsoft.Storage.BlobCreated"
+					]
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/pipelines/orchestratorPipeline')]"
 			]
 		},
 		{
