@@ -27,10 +27,6 @@
 			"type": "string",
 			"defaultValue": "https://azurepractice58.dfs.core.windows.net/"
 		},
-		"tr_process_raw_data_properties_typeProperties_scope": {
-			"type": "string",
-			"defaultValue": "/subscriptions/0a35b22d-7a96-474a-bf5b-35915b45e4a7/resourceGroups/azurepractice/providers/Microsoft.Storage/storageAccounts/azurepractice58"
-		},
 		"tr_storage_upload_properties_typeProperties_scope": {
 			"type": "string",
 			"defaultValue": "/subscriptions/0a35b22d-7a96-474a-bf5b-35915b45e4a7/resourceGroups/azurepractice/providers/Microsoft.Storage/storageAccounts/azurepractice58"
@@ -76,9 +72,6 @@
 					},
 					"processeddatalake_properties_typeProperties_url": {
 						"value": "[parameters('processeddatalake_properties_typeProperties_url')]"
-					},
-					"tr_process_raw_data_properties_typeProperties_scope": {
-						"value": "[parameters('tr_process_raw_data_properties_typeProperties_scope')]"
 					},
 					"tr_storage_upload_properties_typeProperties_scope": {
 						"value": "[parameters('tr_storage_upload_properties_typeProperties_scope')]"

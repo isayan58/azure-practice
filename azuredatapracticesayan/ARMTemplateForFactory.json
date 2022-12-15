@@ -27,10 +27,6 @@
 			"type": "string",
 			"defaultValue": "https://azurepractice58.dfs.core.windows.net/"
 		},
-		"tr_process_raw_data_properties_typeProperties_scope": {
-			"type": "string",
-			"defaultValue": "/subscriptions/0a35b22d-7a96-474a-bf5b-35915b45e4a7/resourceGroups/azurepractice/providers/Microsoft.Storage/storageAccounts/azurepractice58"
-		},
 		"tr_storage_upload_properties_typeProperties_scope": {
 			"type": "string",
 			"defaultValue": "/subscriptions/0a35b22d-7a96-474a-bf5b-35915b45e4a7/resourceGroups/azurepractice/providers/Microsoft.Storage/storageAccounts/azurepractice58"
@@ -88,7 +84,7 @@
 							{
 								"activity": "Blob to Azure SQL",
 								"dependencyConditions": [
-									"Succeeded"
+									"Completed"
 								]
 							}
 						],
@@ -120,6 +116,46 @@
 								"enablePartitionDiscovery": false
 							}
 						}
+					},
+					{
+						"name": "Delete Source File",
+						"type": "Delete",
+						"dependsOn": [
+							{
+								"activity": "Blob to Azure SQL",
+								"dependencyConditions": [
+									"Completed"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataset": {
+								"referenceName": "ds_raw_drugs_data",
+								"type": "DatasetReference",
+								"parameters": {}
+							},
+							"logStorageSettings": {
+								"linkedServiceName": {
+									"referenceName": "RawBlobStorage",
+									"type": "LinkedServiceReference"
+								},
+								"path": "logs"
+							},
+							"enableLogging": true,
+							"storeSettings": {
+								"type": "AzureBlobFSReadSettings",
+								"recursive": true,
+								"enablePartitionDiscovery": false
+							}
+						}
 					}
 				],
 				"policy": {
@@ -132,6 +168,7 @@
 				"[concat(variables('factoryId'), '/pipelines/process_raw_data')]",
 				"[concat(variables('factoryId'), '/pipelines/postDatatoSQL')]",
 				"[concat(variables('factoryId'), '/datasets/medicinedata_preprocessed')]",
+				"[concat(variables('factoryId'), '/datasets/ds_raw_drugs_data')]",
 				"[concat(variables('factoryId'), '/linkedServices/RawBlobStorage')]"
 			]
 		},
@@ -463,66 +500,6 @@
 				}
 			},
 			"dependsOn": []
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/daily_trigger')]",
-			"type": "Microsoft.DataFactory/factories/triggers",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"annotations": [],
-				"runtimeState": "Started",
-				"pipelines": [
-					{
-						"pipelineReference": {
-							"referenceName": "postDatatoSQL",
-							"type": "PipelineReference"
-						},
-						"parameters": {}
-					}
-				],
-				"type": "ScheduleTrigger",
-				"typeProperties": {
-					"recurrence": {
-						"frequency": "Day",
-						"interval": 1,
-						"startTime": "2022-12-13T20:26:00",
-						"timeZone": "India Standard Time"
-					}
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/pipelines/postDatatoSQL')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/tr_process_raw_data')]",
-			"type": "Microsoft.DataFactory/factories/triggers",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"annotations": [],
-				"runtimeState": "Started",
-				"pipelines": [
-					{
-						"pipelineReference": {
-							"referenceName": "process_raw_data",
-							"type": "PipelineReference"
-						},
-						"parameters": {}
-					}
-				],
-				"type": "BlobEventsTrigger",
-				"typeProperties": {
-					"blobPathBeginsWith": "/azureraw/blobs/",
-					"ignoreEmptyBlobs": false,
-					"scope": "[parameters('tr_process_raw_data_properties_typeProperties_scope')]",
-					"events": [
-						"Microsoft.Storage.BlobCreated"
-					]
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/pipelines/process_raw_data')]"
-			]
 		},
 		{
 			"name": "[concat(parameters('factoryName'), '/tr_storage_upload')]",
